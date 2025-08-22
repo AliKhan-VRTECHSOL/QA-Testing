@@ -1,3 +1,5 @@
+import { AppleButtonType } from '@invertase/react-native-apple-authentication';
+
 export interface AppleLoginProps {
   onSuccess?: (user: {
     platform: 'ios' | 'android';
@@ -9,5 +11,5 @@ export interface AppleLoginProps {
     code?: string;
   }) => void;
   onError?: (error: any) => void;
-  isSmall?: boolean;
+  buttonTextType: AppleButtonType;
 }

@@ -1,16 +1,14 @@
 import React, { useEffect, useState } from 'react';
-import {
-  AppleButton,
-  appleAuth,
-} from '@invertase/react-native-apple-authentication';
+import { AppleButton, appleAuth } from '@invertase/react-native-apple-authentication';
 import { decode } from 'base-64';
 import { jwtDecode } from 'jwt-decode';
 import { AppleLoginProps } from './types';
 import styles from './styles';
+import fonts from '../../theme/fonts';
 
 global.atob = decode;
 
-const AppleLogin: React.FC<AppleLoginProps> = ({ onSuccess, onError }) => {
+const AppleLogin: React.FC<AppleLoginProps> = ({ onSuccess, onError, buttonTextType }) => {
   const [isSupported, setIsSupported] = useState<boolean>(false);
 
   useEffect(() => {
@@ -44,6 +42,12 @@ const AppleLogin: React.FC<AppleLoginProps> = ({ onSuccess, onError }) => {
         }
       }
 
+      // TODO: API Integration Required
+      // Call: POST /auth/social-login
+      // Send: { provider: 'apple', token: identityToken, user: { id: user, name: name, email: userEmail } }
+      // Expect: { token: string, user: { id: string, email: string, name: string, phone: string } }
+      // Handle: Store token, user data, navigate to VerifyPhone on success
+
       onSuccess?.({
         platform: 'ios',
         id: user,
@@ -68,8 +72,12 @@ const AppleLogin: React.FC<AppleLoginProps> = ({ onSuccess, onError }) => {
       style={styles.buttonContainerStyle}
       cornerRadius={25}
       buttonStyle={AppleButton.Style.BLACK}
-      buttonType={AppleButton.Type.CONTINUE}
+      buttonType={buttonTextType}
       onPress={handleLogin}
+      textStyle={{
+        fontSize: 12,
+        fontFamily: fonts.family.medium,
+      }}
     />
   );
 };

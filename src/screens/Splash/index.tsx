@@ -1,8 +1,10 @@
 import React, { useEffect, useMemo } from 'react';
-import LottieView from 'lottie-react-native';
 import { StyleSheet } from 'react-native';
+import LottieView from 'lottie-react-native';
 import { useTheme } from '../../context/themeContext';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { DimensionsData } from '../../utils/scaling';
+import { useProfileStatusStore } from '../../store/profileStatusStore';
 
 interface ScreenProps {
   navigation: NativeStackNavigationProp<any>;
@@ -10,10 +12,11 @@ interface ScreenProps {
 
 const Splash: React.FC<ScreenProps> = ({ navigation }) => {
   const styles = useStyles();
+  const { isLoggedIn } = useProfileStatusStore();
 
   useEffect(() => {
     setTimeout(() => {
-      navigation.replace('AuthNavigator');
+      navigation.replace(isLoggedIn ? 'HomeStack' : 'AuthStack');
     }, 4500);
   }, []);
 
@@ -34,8 +37,9 @@ const useStyles = () => {
     () =>
       StyleSheet.create({
         lottieView: {
-          flex: 1,
           backgroundColor: colors.splashBackground,
+          width: DimensionsData.windowWidth,
+          height: DimensionsData.screenHeight,
         },
       }),
     [colors],

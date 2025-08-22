@@ -5,72 +5,96 @@ import {
   ScrollView,
   ScrollViewProps,
   StyleSheet,
+  View,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { CommonLayoutStyles } from '../theme/commonLayout';
-import { useTheme } from '../context/themeContext';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
-interface ComponentProps {
+import { LayoutMetrics } from '../theme/commonLayout';
+import { useTheme } from '../context/themeContext';
+import { useKeyboardStatus } from '../utils/useKeyboardStatus';
+
+const platformSpecificKeyboardVerticalOffset = Platform.select({
+  android: 61,
+  ios: 85,
+  default: 100,
+});
+
+interface SAScrollViewProps extends ScrollViewProps {
   children: ReactNode;
   header?: ReactNode;
+  footer?: ReactNode;
   removeSafeAreaInsets?: boolean;
+  IndividualkeyboardVerticalOffset?: number;
 }
 
-type props = ComponentProps & ScrollViewProps;
-
-const SAScrollView: React.FC<props> = ({
+const SAScrollView: React.FC<SAScrollViewProps> = ({
   children,
   header,
+  footer,
   removeSafeAreaInsets = false,
-  ...rest
+  contentContainerStyle,
+  IndividualkeyboardVerticalOffset,
+  ...scrollProps
 }) => {
+  const insets = useSafeAreaInsets();
   const styles = useStyles();
+  const isKeyboardVisible = useKeyboardStatus();
 
-  if (removeSafeAreaInsets) {
-    return (
-      <KeyboardAvoidingView
-        style={styles.mainContainer}
-        behavior={Platform.select({ android: 'height', ios: 'padding' })}
-      >
-        <ScrollView
-          showsVerticalScrollIndicator={false}
-          automaticallyAdjustKeyboardInsets={false}
-          {...rest}
-          contentContainerStyle={[
-            styles.contentContainerStyle,
-            rest.contentContainerStyle,
-          ]}
-        >
-          {children}
-        </ScrollView>
-      </KeyboardAvoidingView>
-    );
-  }
+  const keyboardVerticalOffset = useMemo(() => {
+    if (!footer) return -35;
+
+    if (Platform.OS === 'ios') {
+      return platformSpecificKeyboardVerticalOffset;
+    }
+
+    return isKeyboardVisible ? platformSpecificKeyboardVerticalOffset : 0;
+  }, [isKeyboardVisible, footer]);
+
+  const resolvedContentStyle = useMemo(() => {
+    return [styles.contentContainer, contentContainerStyle];
+  }, [styles.contentContainer, contentContainerStyle]);
 
   return (
-    <SafeAreaView style={styles.mainContainer}>
-      {header}
-      <KeyboardAvoidingView
-        style={styles.mainContainer}
-        behavior={Platform.select({ android: 'height', ios: 'padding' })}
-      >
-        <ScrollView
-          showsVerticalScrollIndicator={false}
-          automaticallyAdjustKeyboardInsets={false}
-          {...rest}
-          contentContainerStyle={[
-            styles.contentContainerStyle,
-            rest.contentContainerStyle,
-          ]}
-        >
-          {children}
-        </ScrollView>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+    <KeyboardAvoidingView
+      style={styles.mainContainer}
+      behavior={Platform.select({ ios: 'padding', android: 'height' })}
+      keyboardVerticalOffset={IndividualkeyboardVerticalOffset || keyboardVerticalOffset}
+    >
+      {removeSafeAreaInsets ? (
+        <View style={[styles.mainContainer, footer && { paddingBottom: insets.bottom }]}>
+          {header}
+          <ScrollView
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps='handled'
+            automaticallyAdjustKeyboardInsets={false}
+            contentContainerStyle={resolvedContentStyle}
+            {...scrollProps}
+          >
+            {children}
+          </ScrollView>
+          {footer}
+        </View>
+      ) : (
+        <SafeAreaView style={styles.mainContainer}>
+          {header}
+          <ScrollView
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps='handled'
+            automaticallyAdjustKeyboardInsets={false}
+            contentContainerStyle={resolvedContentStyle}
+            {...scrollProps}
+          >
+            {children}
+          </ScrollView>
+          {footer}
+        </SafeAreaView>
+      )}
+    </KeyboardAvoidingView>
   );
 };
 
 const useStyles = () => {
+  const { bottom } = useSafeAreaInsets();
   const { colors } = useTheme();
   return useMemo(
     () =>
@@ -79,9 +103,10 @@ const useStyles = () => {
           flex: 1,
           backgroundColor: colors.white,
         },
-        contentContainerStyle: {
-          paddingBottom: Platform.select({ android: 50, ios: 0 }),
-          paddingHorizontal: CommonLayoutStyles.paddingHorizontal,
+        contentContainer: {
+          flexGrow: 1,
+          paddingBottom: bottom,
+          paddingHorizontal: LayoutMetrics.padding.horizontal,
         },
       }),
     [colors],

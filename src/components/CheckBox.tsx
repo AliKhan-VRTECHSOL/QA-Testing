@@ -1,26 +1,39 @@
 import React, { SetStateAction, useMemo } from 'react';
-import { Pressable, Image, StyleSheet } from 'react-native';
+import { Pressable, Image, StyleSheet, ViewStyle, ImageStyle } from 'react-native';
 import { useTheme } from '../context/themeContext';
 import { ThemeColors } from '../theme/colors';
 import { Icons } from '../assets/Icons';
 
 interface ComponentProps {
   selected: boolean;
-  setSelected: React.Dispatch<React.SetStateAction<boolean>>;
+  setSelected?: React.Dispatch<React.SetStateAction<boolean>>;
+  onPress?: () => void;
+  containerStyle?: ViewStyle;
+  iconStyle?: ImageStyle;
 }
 
-const CheckBox: React.FC<ComponentProps> = ({ selected, setSelected }) => {
+const CheckBox: React.FC<ComponentProps> = ({
+  selected,
+  setSelected,
+  onPress,
+  containerStyle = {},
+  iconStyle = {},
+}) => {
   const { colors } = useTheme();
   const styles = useStyles(colors);
   return (
     <Pressable
-      onPress={() => setSelected(prev => !prev)}
+      onPress={() => (onPress ? onPress() : setSelected ? setSelected(prev => !prev) : null)}
       style={[
         styles.container,
+        containerStyle ? containerStyle : {},
         selected ? styles.selectedContainerOverload : {},
       ]}
     >
-      <Image source={Icons.Check} style={styles.icon} />
+      <Image
+        source={Icons.Check}
+        style={[styles.icon, iconStyle ? iconStyle : {}, selected ? styles.iconSelected : {}]}
+      />
     </Pressable>
   );
 };
@@ -46,6 +59,9 @@ const useStyles = (colors: ThemeColors) => {
         icon: {
           width: 10,
           height: 10,
+          tintColor: 'transparent',
+        },
+        iconSelected: {
           tintColor: colors.white,
         },
       }),

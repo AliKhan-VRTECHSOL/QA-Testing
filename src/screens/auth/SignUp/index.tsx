@@ -1,20 +1,21 @@
-import React, { SetStateAction, useMemo, useState } from 'react';
-import { Alert, StyleSheet, View } from 'react-native';
+import React, { SetStateAction, useCallback, useMemo, useRef, useState } from 'react';
+import { Alert, StyleSheet, TextInput, View } from 'react-native';
 
-import { ThemeColors } from '../../../theme/colors';
 import { useTheme } from '../../../context/themeContext';
-import HeaderSpaced from '../../../components/Headers/HeaderSpaced';
-import AppleLogin from '../../../components/AppleLogin';
+import Header from '../../../components/Headers/Header';
 import {
   Text,
   CustomHighlightButton,
   InputField,
   SAScrollView,
+  HiLightedText,
 } from '../../../components';
 import { emailRegex } from '../../../constants/regex';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { Icons } from '../../../assets/Icons';
 import CheckBox from '../../../components/CheckBox';
+import { LogoHeaderDescription, SSO } from '../../../components/auth';
+import { AppleButton } from '@invertase/react-native-apple-authentication';
+import { ProfileStatus, useProfileStatusStore } from '../../../store/profileStatusStore';
 
 interface ScreenProps {
   navigation: NativeStackNavigationProp<any>;
@@ -22,111 +23,148 @@ interface ScreenProps {
 
 const SignUp: React.FC<ScreenProps> = ({ navigation }) => {
   const { colors } = useTheme();
-  const styles = useStyles(colors);
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
-  const [email, setEmail] = useState('');
-  const [agreeTerms, setAgreeTerms] = useState(false);
+  const { setProfileStatus } = useProfileStatusStore();
 
-  const handleUpdateInputFields = (
-    newText: string,
-    setNewText: SetStateAction<any>,
-  ) => {
+  const emailRef = useRef<TextInput>(null);
+  const passwordRef = useRef<TextInput>(null);
+  const confirmPasswordRef = useRef<TextInput>(null);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  // const [agreeTerms, setAgreeTerms] = useState(true);
+
+  const handleUpdateInputFields = (newText: string, setNewText: SetStateAction<any>) => {
     setNewText(newText.trim());
   };
 
   const isFormValidated = useMemo(
     () =>
       !(
-        firstName.length !== 0 &&
-        lastName.length !== 0 &&
-        emailRegex.test(email)
+        (
+          password.length !== 0 &&
+          confirmPassword.length !== 0 &&
+          emailRegex.test(email) &&
+          password === confirmPassword
+        )
+        // &&agreeTerms
       ),
-    [firstName, lastName, email],
+    [password, confirmPassword, email],
   );
+
+  const handleSignUp = useCallback(() => {
+    if (isFormValidated) {
+      return;
+    }
+
+    // TODO: API Integration Required
+    // Call: POST /auth/signup
+    // Send: { email: string, password: string, confirmPassword: string }
+    // Expect: { success: boolean, message: string, user: { id: string, email: string } }
+    // Handle: Set profile status, navigate to OnBoardingStack on success, show error on failure
+
+    setProfileStatus(ProfileStatus.PROSPECT);
+    navigation.navigate('OnBoardingStack');
+  }, [isFormValidated]);
 
   return (
     <SAScrollView
       contentContainerStyle={styles.contentContainerStyle}
-      header={<HeaderSpaced title="Sign Up" />}
+      header={<Header title='Sign Up' />}
     >
-      <AppleLogin />
-      <View style={styles.rowFieldsWrapper}>
-        <InputField
-          placeholder={'First name'}
-          value={firstName}
-          onChangeText={newText =>
-            handleUpdateInputFields(newText, setFirstName)
-          }
-        />
-        <InputField
-          placeholder={'Last name'}
-          value={lastName}
-          onChangeText={newText =>
-            handleUpdateInputFields(newText, setLastName)
-          }
-        />
-      </View>
+      <LogoHeaderDescription title='Get Started!' subTitle='Register your account and join us.' />
       <InputField
-        placeholder={'Email address'}
+        ref={emailRef}
+        placeholder={'Email Address'}
         keyboardType={'email-address'}
         value={email}
         onChangeText={newText => handleUpdateInputFields(newText, setEmail)}
+        onSubmitEditing={() => passwordRef.current?.focus()}
       />
+      <InputField
+        ref={passwordRef}
+        placeholder={'Password'}
+        value={password}
+        onChangeText={setPassword}
+        secureTextEntry
+        onSubmitEditing={() => confirmPasswordRef.current?.focus()}
+      />
+      <InputField
+        ref={confirmPasswordRef}
+        placeholder={'Confirm Password'}
+        value={confirmPassword}
+        onChangeText={setConfirmPassword}
+        onSubmitEditing={handleSignUp}
+        secureTextEntry
+        returnKeyType='done'
+      />
+
       <CustomHighlightButton
-        title="Sign Up"
+        title='Sign Up'
         showActivityIndicator={false}
         disabled={isFormValidated}
-        onPress={() => navigation.navigate('VerifyPhone')}
+        onPress={handleSignUp}
       />
-      <View
-        style={{
-          flexDirection: 'row',
-          gap: 7,
+      <HiLightedText
+        highlight={{
+          Log: [0],
+          'in.': [0],
+        }}
+        textStyle={{
+          textStyle: 'medium12',
+          color: colors.textPrimary,
+          style: {
+            alignSelf: 'center',
+            marginVertical: 10,
+          },
+        }}
+        hiLightedTextStyle={{
+          textStyle: 'bold12',
+          color: colors.primary,
+          style: {
+            textDecorationLine: 'underline',
+            textDecorationColor: colors.primary,
+          },
+          onPress: () => navigation.replace('Login'),
         }}
       >
-        <CheckBox selected={agreeTerms} setSelected={setAgreeTerms} />
-        <Text textStyle="medium12" color={colors.lightGrey}>
+        Already have an account? Log in.
+      </HiLightedText>
+      <View style={styles.checBoxContainer}>
+        {/* <CheckBox selected={agreeTerms} setSelected={setAgreeTerms} /> */}
+        <Text textStyle='medium12' color={colors.textPrimary}>
           By signing up you agree to our{' '}
           <Text
             onPress={() => Alert.alert('Terms of User')}
-            textStyle="bold12"
-            color={colors.lightGrey}
+            textStyle='bold12'
+            color={colors.textPrimary}
           >
             Terms of Use
           </Text>{' '}
           and{'\n'}
           <Text
             onPress={() => Alert.alert('Privacy Notice')}
-            textStyle="bold12"
-            color={colors.lightGrey}
+            textStyle='bold12'
+            color={colors.textPrimary}
           >
             Privacy Notice.
           </Text>
         </Text>
       </View>
+      <SSO appleButtonTextType={AppleButton.Type.SIGN_IN} />
     </SAScrollView>
   );
 };
 
-const useStyles = (colors: ThemeColors) => {
-  return useMemo(
-    () =>
-      StyleSheet.create({
-        contentContainerStyle: {
-          gap: 16,
-          paddingTop: 24,
-          paddingHorizontal: 16,
-        },
-        rowFieldsWrapper: {
-          flexDirection: 'row',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: 16,
-        },
-      }),
-    [colors],
-  );
-};
+const styles = StyleSheet.create({
+  contentContainerStyle: {
+    gap: 16,
+    paddingTop: 24,
+  },
+  checBoxContainer: {
+    flexDirection: 'row',
+    // gap: 7,
+    paddingLeft: 16,
+  },
+});
 
 export default SignUp;

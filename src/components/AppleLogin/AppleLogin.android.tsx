@@ -1,18 +1,14 @@
 import React, { useEffect, useState } from 'react';
-import {
-  AppleButton,
-  appleAuthAndroid,
-} from '@invertase/react-native-apple-authentication';
+import { AppleButton, appleAuthAndroid } from '@invertase/react-native-apple-authentication';
 import { Image } from 'react-native';
 import { jwtDecode } from 'jwt-decode';
 import { v4 as uuid } from 'uuid';
 import { AppleLoginProps } from './types';
-import { DimensionsData } from '../../utils/scaling';
 import styles from './styles';
 
 const appleLogoBlack = require('./apple_logo_white.webp');
 
-const AppleLogin: React.FC<AppleLoginProps> = ({ onSuccess, onError }) => {
+const AppleLogin: React.FC<AppleLoginProps> = ({ onSuccess, onError, buttonTextType }) => {
   const [isSupported, setIsSupported] = useState<boolean>(false);
 
   useEffect(() => {
@@ -58,7 +54,7 @@ const AppleLogin: React.FC<AppleLoginProps> = ({ onSuccess, onError }) => {
       style={styles.buttonContainerStyle}
       cornerRadius={25}
       buttonStyle={AppleButton.Style.BLACK}
-      buttonType={AppleButton.Type.CONTINUE}
+      buttonType={buttonTextType}
       textStyle={styles.textStyle}
       onPress={handleLogin}
       leftView={<Image source={appleLogoBlack} style={styles.logoStyle} />}

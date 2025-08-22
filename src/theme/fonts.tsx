@@ -18,6 +18,7 @@ const family = {
   mediumItalic: 'Satoshi-MediumItalic',
   boldItalic: 'Satoshi-BoldItalic',
   blackItalic: 'Satoshi-BlackItalic',
+  logoFont: 'FONTSPRINGDEMO-AllRoundGothicMediumRegular',
 };
 
 export default {

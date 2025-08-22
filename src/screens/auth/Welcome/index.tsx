@@ -7,7 +7,8 @@ import { ThemeColors } from '../../../theme/colors';
 import { Images } from '../../../assets/images';
 import { DimensionsData } from '../../../utils/scaling';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { CommonLayoutStyles } from '../../../theme/commonLayout';
+import { LayoutMetrics } from '../../../theme/commonLayout';
+import { CommonActions } from '@react-navigation/native';
 
 interface ScreenProps {
   navigation: NativeStackNavigationProp<any>;
@@ -25,17 +26,22 @@ const Welcome: React.FC<ScreenProps> = ({ navigation }) => {
         </Text>
         <Image />
       </View>
-      <Text
-        style={styles.detailTextStyle}
-        textStyle="regular16"
-        color={colors.textPrimary}
-        center
-      >
-        Say goodbye to "did I buy milk?" moments! Join thousands using AI to
-        predict what they need at the store and ditch the last-minute trips.
+      <Text style={styles.detailTextStyle} textStyle='regular16' color={colors.textPrimary} center>
+        Say goodbye to "did I buy milk?" moments! Join thousands using AI to predict what they need
+        at the store and ditch the last-minute trips.
         {'\n\n\n'}Ready to save money and shop smarter?
       </Text>
-      <CustomHighlightButton title="Let's get started!" />
+      <CustomHighlightButton
+        title="Let's get started!"
+        onPress={() => {
+          navigation.dispatch(
+            CommonActions.reset({
+              index: 0,
+              routes: [{ name: 'HomeStack' }],
+            }),
+          );
+        }}
+      />
     </View>
   );
 };
@@ -51,7 +57,7 @@ const useStyles = (colors: ThemeColors) => {
           alignItems: 'center',
           paddingBottom: bottom + 50,
           justifyContent: 'space-between',
-          paddingHorizontal: CommonLayoutStyles.paddingHorizontal,
+          paddingHorizontal: LayoutMetrics.padding.horizontal,
         },
         welcomeImage: {
           width: DimensionsData.windowWidth * 0.5,

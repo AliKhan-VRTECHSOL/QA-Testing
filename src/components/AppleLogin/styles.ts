@@ -4,7 +4,7 @@ import { DimensionsData } from '../../utils/scaling';
 const styles = StyleSheet.create({
   buttonContainerStyle: {
     width: DimensionsData.windowWidth - 32,
-    height: 50,
+    height: 56,
     alignSelf: 'center',
   },
   textStyle: {
